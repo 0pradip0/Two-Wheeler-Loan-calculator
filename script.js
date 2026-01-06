@@ -1,406 +1,317 @@
-// State Management
-let currentState = {
-    onRoadPrice: 500000,
-    downPayment: 100000,
-    tenure: 60,
-    interestRate: 8. 5,
-    rateType: 'flat', // 'flat' or 'reducing'
-    flatRate: 8.5,
-    reducingRate: null,
-    results: null
-};
+// Clean, robust script for EMI calculator
+(() => {
+  // DOM refs
+  const onRoadPriceEl = document.getElementById('onRoadPrice');
+  const downPaymentEl = document.getElementById('downPayment');
+  const tenureEl = document.getElementById('tenure');
+  const interestRateEl = document.getElementById('interestRate');
+  const rateButtons = Array.from(document.querySelectorAll('.rate-btn'));
+  const rateTypeLabel = document.getElementById('rateTypeLabel');
+  const calculateBtn = document.getElementById('calculateBtn');
+  const resultsSection = document.getElementById('resultsSection');
+  const flatRateBadge = document.getElementById('flatRateBadge');
+  const reducingRateBadge = document.getElementById('reducingRateBadge');
+  const flatLoanAmountEl = document.getElementById('flatLoanAmount');
+  const reducingLoanAmountEl = document.getElementById('reducingLoanAmount');
+  const flatEmiEl = document.getElementById('flatEmi');
+  const reducingEmiEl = document.getElementById('reducingEmi');
+  const flatTotalInterestEl = document.getElementById('flatTotalInterest');
+  const reducingTotalInterestEl = document.getElementById('reducingTotalInterest');
+  const flatTotalPayableEl = document.getElementById('flatTotalPayable');
+  const reducingTotalPayableEl = document.getElementById('reducingTotalPayable');
+  const breakdownBtns = Array.from(document.querySelectorAll('.breakdown-btn'));
+  const modal = document.getElementById('breakdownModal');
+  const closeModal = document.getElementById('closeModal');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+  const tableBody = document.getElementById('tableBody');
+  const modalRateTypeEl = document.getElementById('modalRateType');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const themeToggle = document.getElementById('themeToggle');
+  const comparisonCanvas = document.getElementById('comparisonChart');
 
-let comparisonChart = null;
+  let currentRateType = 'flat';
+  let chart = null;
+  let lastResults = null;
 
-// DOM Elements
-const onRoadPriceInput = document.getElementById('onRoadPrice');
-const downPaymentInput = document.getElementById('downPayment');
-const tenureInput = document.getElementById('tenure');
-const interestRateInput = document.getElementById('interestRate');
-const calculateBtn = document.getElementById('calculateBtn');
-const themeToggle = document.getElementById('themeToggle');
-const rateButtons = document.querySelectorAll('. rate-btn');
-const resultsSection = document.getElementById('resultsSection');
-const breakdownButtons = document.querySelectorAll('. breakdown-btn');
-const breakdownModal = document.getElementById('breakdownModal');
-const closeModal = document.getElementById('closeModal');
-const closeModalBtn = document.getElementById('closeModalBtn');
-const rateTypeLabel = document.getElementById('rateTypeLabel');
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    initializeTheme();
-    setupEventListeners();
-    calculateEMI();
-});
-
-// Theme Management
-function initializeTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    if (savedTheme === 'dark') {
-        document.body. classList.add('dark-theme');
-        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-    }
-}
-
-themeToggle.addEventListener('click', () => {
-    document.body.classList.toggle('dark-theme');
-    const isDark = document.body.classList.contains('dark-theme');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    themeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-});
-
-// Event Listeners Setup
-function setupEventListeners() {
-    onRoadPriceInput.addEventListener('input', handleInputChange);
-    downPaymentInput.addEventListener('input', handleInputChange);
-    tenureInput.addEventListener('input', handleInputChange);
-    interestRateInput.addEventListener('input', handleInterestRateChange);
-    calculateBtn.addEventListener('click', calculateEMI);
-
-    // Rate Type Toggle
-    rateButtons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            rateButtons.forEach(b => b.classList.remove('active'));
-            e.target.closest('.rate-btn').classList.add('active');
-            currentState.rateType = e. target.closest('.rate-btn').dataset.rateType;
-            updateRateTypeLabel();
-            calculateEMI();
-        });
-    });
-
-    // Breakdown Buttons
-    breakdownButtons.forEach(btn => {
-        btn. addEventListener('click', () => {
-            const rateType = btn.dataset.rateType;
-            showBreakdownModal(rateType);
-        });
-    });
-
-    closeModal.addEventListener('click', () => breakdownModal.classList.remove('active'));
-    closeModalBtn.addEventListener('click', () => breakdownModal.classList.remove('active'));
-    breakdownModal.addEventListener('click', (e) => {
-        if (e.target === breakdownModal) {
-            breakdownModal.classList.remove('active');
-        }
-    });
-}
-
-function handleInputChange() {
-    currentState.onRoadPrice = parseFloat(onRoadPriceInput.value) || 0;
-    currentState.downPayment = parseFloat(downPaymentInput.value) || 0;
-    currentState. tenure = parseInt(tenureInput.value) || 1;
-    
-    // Validate inputs
-    if (currentState. downPayment > currentState.onRoadPrice) {
-        currentState.downPayment = currentState.onRoadPrice;
-        downPaymentInput.value = currentState.downPayment;
-    }
-}
-
-function handleInterestRateChange() {
-    currentState.interestRate = parseFloat(interestRateInput.value) || 0;
-    
-    if (currentState.rateType === 'flat') {
-        currentState.flatRate = currentState.interestRate;
-        currentState.reducingRate = convertFlatToReducing(
-            currentState.flatRate,
-            currentState.tenure
-        );
+  // init
+  function init() {
+    // load theme
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark-theme');
+      themeToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
     } else {
-        currentState.reducingRate = currentState.interestRate;
-        currentState.flatRate = convertReducingToFlat(
-            currentState.reducingRate,
-            currentState.tenure
-        );
+      themeToggle.innerHTML = '<i class="fa-solid fa-moon"></i>';
     }
-}
 
-// Interest Rate Conversion Functions
-function convertFlatToReducing(flatRate, tenure) {
-    // Reducing rate ≈ (2 × Flat rate) / (Tenure + 1)
-    return (2 * flatRate) / (tenure + 1);
-}
+    // rate buttons
+    rateButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        rateButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentRateType = btn.dataset.type;
+        rateTypeLabel.textContent = currentRateType === 'flat' ? 'Flat' : 'Reducing';
+        // when switching, interpret current input as the selected rate type
+        // immediate conversion to show both rates
+        convertRatesFromInput();
+      });
+    });
 
-function convertReducingToFlat(reducingRate, tenure) {
-    // Flat rate ≈ (Reducing rate × (Tenure + 1)) / 2
-    return (reducingRate * (tenure + 1)) / 2;
-}
+    // input listeners
+    [onRoadPriceEl, downPaymentEl, tenureEl].forEach(el => el.addEventListener('input', validateInputs));
+    interestRateEl.addEventListener('input', convertRatesFromInput);
 
-function updateRateTypeLabel() {
-    const label = currentState.rateType === 'flat' ? 'Flat Rate' : 'Reducing Rate';
-    rateTypeLabel.textContent = label;
-}
+    calculateBtn.addEventListener('click', calculateEMIs);
 
-// EMI Calculation
-function calculateEMI() {
-    handleInputChange();
-    handleInterestRateChange();
+    // breakdown modal
+    breakdownBtns.forEach(b => b.addEventListener('click', () => openModal(b.dataset.rate)));
+    closeModal.addEventListener('click', closeModalFn);
+    closeModalBtn.addEventListener('click', closeModalFn);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModalFn(); });
 
-    const loanAmount = currentState.onRoadPrice - currentState.downPayment;
-    const monthlyRate = currentState.reducingRate / 100 / 12;
-    const tenure = currentState.tenure;
+    downloadBtn.addEventListener('click', downloadCSV);
 
-    // Reducing Interest Rate EMI Calculation
-    const reducingEMI = calculateReducingEMI(
-        loanAmount,
-        currentState.reducingRate,
-        tenure
-    );
+    themeToggle.addEventListener('click', toggleTheme);
 
-    // Flat Interest Rate EMI Calculation
-    const flatEMI = calculateFlatEMI(
-        loanAmount,
-        currentState. flatRate,
-        tenure
-    );
+    // initial conversion & calculation
+    convertRatesFromInput();
+    calculateEMIs();
+  }
 
-    // Calculate totals
+  // theme toggle
+  function toggleTheme() {
+    const isDark = document.body.classList.toggle('dark-theme');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    themeToggle.innerHTML = isDark ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+    // redraw chart colors if present
+    if (chart) chart.update();
+  }
+
+  function validateInputs() {
+    const onRoad = Number(onRoadPriceEl.value) || 0;
+    let down = Number(downPaymentEl.value) || 0;
+    const tenure = parseInt(tenureEl.value, 10) || 1;
+
+    if (down > onRoad) {
+      down = onRoad;
+      downPaymentEl.value = down;
+    }
+    if (tenure < 1) tenureEl.value = 1;
+  }
+
+  function convertRatesFromInput() {
+    validateInputs();
+    const inputRate = Number(interestRateEl.value) || 0;
+    const tenure = parseInt(tenureEl.value, 10) || 1;
+
+    let flatRate, reducingRate;
+    if (currentRateType === 'flat') {
+      flatRate = inputRate;
+      // approximation: reducing ≈ (2 × flat) / (tenureMonths + 1)
+      reducingRate = (2 * flatRate) / (tenure + 1);
+    } else {
+      reducingRate = inputRate;
+      flatRate = (reducingRate * (tenure + 1)) / 2;
+    }
+
+    // update pills / badges
+    rateTypeLabel.textContent = currentRateType === 'flat' ? 'Flat' : 'Reducing';
+    // set a display-only badge for user clarity in inputs (do not overwrite input field)
+    flatRateBadge.textContent = flatRate.toFixed(2) + '%';
+    reducingRateBadge.textContent = reducingRate.toFixed(2) + '%';
+
+    // store result for calculate
+    lastResults = { flatRate, reducingRate };
+  }
+
+  function calculateEMIs() {
+    validateInputs();
+    if (!lastResults) convertRatesFromInput();
+
+    const onRoad = Number(onRoadPriceEl.value) || 0;
+    const down = Number(downPaymentEl.value) || 0;
+    const principal = Math.max(0, onRoad - down);
+    const tenure = parseInt(tenureEl.value, 10) || 1;
+
+    const flatRate = lastResults.flatRate;
+    const reducingRate = lastResults.reducingRate;
+
+    // flat EMI
+    // totalInterest (flat) = Principal * (flatRate/100) * (years)
+    const years = tenure / 12;
+    const totalFlatInterest = principal * (flatRate / 100) * years;
+    const flatEMI = (principal + totalFlatInterest) / tenure;
     const flatTotalPayable = flatEMI * tenure;
-    const flatTotalInterest = flatTotalPayable - loanAmount;
 
+    // reducing EMI (standard amortization formula)
+    const monthlyReducingRate = (reducingRate / 100) / 12;
+    let reducingEMI;
+    if (monthlyReducingRate === 0) {
+      reducingEMI = principal / tenure;
+    } else {
+      const r = monthlyReducingRate;
+      const numerator = principal * r * Math.pow(1 + r, tenure);
+      const denominator = Math.pow(1 + r, tenure) - 1;
+      reducingEMI = numerator / denominator;
+    }
     const reducingTotalPayable = reducingEMI * tenure;
-    const reducingTotalInterest = reducingTotalPayable - loanAmount;
 
-    currentState.results = {
-        loanAmount,
-        flatRate: currentState.flatRate,
-        reducingRate: currentState. reducingRate,
-        flatEMI,
-        reducingEMI,
-        flatTotalInterest,
-        reducingTotalInterest,
-        flatTotalPayable,
-        reducingTotalPayable,
-        tenure
+    // totals
+    const reducingTotalInterest = reducingTotalPayable - principal;
+    const flatTotalInterestRounded = totalFlatInterest;
+
+    // update UI
+    flatLoanAmountEl.textContent = formatCurrency(principal);
+    reducingLoanAmountEl.textContent = formatCurrency(principal);
+
+    flatEmiEl.textContent = formatCurrency(flatEMI);
+    reducingEmiEl.textContent = formatCurrency(reducingEMI);
+
+    flatTotalInterestEl.textContent = formatCurrency(flatTotalInterestRounded);
+    reducingTotalInterestEl.textContent = formatCurrency(reducingTotalInterest);
+
+    flatTotalPayableEl.textContent = formatCurrency(flatTotalPayable);
+    reducingTotalPayableEl.textContent = formatCurrency(reducingTotalPayable);
+
+    // show results
+    resultsSection.classList.remove('hidden');
+
+    // keep results for schedule / download
+    lastResults = {
+      ...lastResults,
+      principal,
+      tenure,
+      flatEMI,
+      reducingEMI,
+      flatTotalInterest: flatTotalInterestRounded,
+      reducingTotalInterest,
+      flatTotalPayable,
+      reducingTotalPayable
     };
 
-    updateUI();
-}
+    renderComparisonChart(lastResults);
+  }
 
-function calculateFlatEMI(principal, rate, months) {
-    // Flat EMI = (Principal + (Principal × Rate × Tenure)) / Tenure
-    const totalInterest = principal * (rate / 100) * (months / 12);
-    return (principal + totalInterest) / months;
-}
+  function formatCurrency(value) {
+    if (Number.isNaN(value)) value = 0;
+    return '₹' + Number(value).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+  }
 
-function calculateReducingEMI(principal, rate, months) {
-    // Reducing EMI = (Principal × Rate × (1 + Rate)^Tenure) / ((1 + Rate)^Tenure - 1)
-    const monthlyRate = rate / 100 / 12;
-    if (monthlyRate === 0) return principal / months;
-    
-    const numerator = principal * monthlyRate * Math.pow(1 + monthlyRate, months);
-    const denominator = Math.pow(1 + monthlyRate, months) - 1;
-    return numerator / denominator;
-}
+  // Chart
+  function renderComparisonChart(data) {
+    const labels = ['Monthly EMI', 'Total Interest', 'Total Payable'];
+    const flatDataset = [data.flatEMI, data.flatTotalInterest, data.flatTotalPayable];
+    const reducingDataset = [data.reducingEMI, data.reducingTotalInterest, data.reducingTotalPayable];
 
-// UI Update
-function updateUI() {
-    const results = currentState.results;
-    
-    // Update Flat Rate Card
-    document.getElementById('flatRateBadge').textContent = `${results.flatRate.toFixed(2)}%`;
-    document.getElementById('flatLoanAmount').textContent = formatCurrency(results.loanAmount);
-    document.getElementById('flatEmi').textContent = formatCurrency(results.flatEMI);
-    document.getElementById('flatTotalInterest').textContent = formatCurrency(results.flatTotalInterest);
-    document.getElementById('flatTotalPayable').textContent = formatCurrency(results.flatTotalPayable);
+    if (chart) chart.destroy();
 
-    // Update Reducing Rate Card
-    document.getElementById('reducingRateBadge').textContent = `${results.reducingRate.toFixed(2)}%`;
-    document.getElementById('reducingLoanAmount').textContent = formatCurrency(results.loanAmount);
-    document.getElementById('reducingEmi').textContent = formatCurrency(results.reducingEMI);
-    document.getElementById('reducingTotalInterest').textContent = formatCurrency(results.reducingTotalInterest);
-    document.getElementById('reducingTotalPayable').textContent = formatCurrency(results. reducingTotalPayable);
-
-    // Show results section
-    resultsSection. style.display = 'block';
-
-    // Update chart
-    updateComparisonChart();
-}
-
-// Comparison Chart
-function updateComparisonChart() {
-    const results = currentState.results;
-    const ctx = document.getElementById('comparisonChart').getContext('2d');
-
-    // Destroy existing chart
-    if (comparisonChart) {
-        comparisonChart.destroy();
-    }
-
-    comparisonChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['EMI Amount', 'Total Interest', 'Total Payable'],
-            datasets: [
-                {
-                    label:  `Flat (${results.flatRate.toFixed(2)}%)`,
-                    data: [results.flatEMI, results.flatTotalInterest, results.flatTotalPayable],
-                    backgroundColor:  'rgba(255, 149, 0, 0.6)',
-                    borderColor: 'rgba(255, 149, 0, 1)',
-                    borderWidth: 2,
-                    borderRadius: 8,
-                },
-                {
-                    label:  `Reducing (${results.reducingRate.toFixed(2)}%)`,
-                    data: [results.reducingEMI, results.reducingTotalInterest, results.reducingTotalPayable],
-                    backgroundColor: 'rgba(52, 199, 89, 0.6)',
-                    borderColor: 'rgba(52, 199, 89, 1)',
-                    borderWidth: 2,
-                    borderRadius: 8,
-                }
-            ]
+    chart = new Chart(comparisonCanvas.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: `Flat (${data.flatRate.toFixed(2)}%)`,
+            data: flatDataset.map(v => Number(v.toFixed(2))),
+            backgroundColor: getComputedStyle(document.body).classList.contains('dark-theme') ? 'rgba(255,186,119,0.9)' : 'rgba(255,149,0,0.9)',
+          },
+          {
+            label: `Reducing (${data.reducingRate.toFixed(2)}%)`,
+            data: reducingDataset.map(v => Number(v.toFixed(2))),
+            backgroundColor: 'rgba(52,199,89,0.85)',
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: getComputedStyle(document.body).color } }
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    labels: {
-                        color: getComputedStyle(document. documentElement).getPropertyValue('--text-primary'),
-                        font: { size: 12, weight: '600' }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    ticks: {
-                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
-                        callback: (value) => '₹' + value.toLocaleString()
-                    },
-                    grid: {
-                        color: getComputedStyle(document.documentElement).getPropertyValue('--glass-border')
-                    }
-                },
-                x: {
-                    ticks: {
-                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary')
-                    },
-                    grid: {
-                        display: false
-                    }
-                }
-            }
+        scales: {
+          y: { ticks: { callback: v => '₹' + Number(v).toLocaleString() } },
+          x: { ticks: { color: getComputedStyle(document.body).color } }
         }
+      }
     });
-}
+  }
 
-// Breakdown Modal
-function showBreakdownModal(rateType) {
-    const results = currentState.results;
-    const isFlat = rateType === 'flat';
-    
-    document.getElementById('modalRateType').textContent = isFlat ? 'Flat Rate' : 'Reducing Rate';
+  // Breakdown modal (flat or reducing)
+  function openModal(type) {
+    if (!lastResults) return;
+    modal.setAttribute('aria-hidden', 'false');
+    modalRateTypeEl.textContent = type === 'flat' ? 'Flat Rate Schedule' : 'Reducing Rate Schedule';
 
-    const schedule = isFlat
-        ? generateFlatAmortizationSchedule()
-        : generateReducingAmortizationSchedule();
+    // generate schedule
+    const schedule = type === 'flat' ? generateFlatSchedule(lastResults) : generateReducingSchedule(lastResults);
 
-    populateTable(schedule);
-    breakdownModal.classList.add('active');
-}
-
-function generateFlatAmortizationSchedule() {
-    const results = currentState.results;
-    const monthlyRate = results.flatRate / 100 / 12;
-    const loanAmount = results.loanAmount;
-    const tenure = results. tenure;
-    const emi = results.flatEMI;
-
-    const schedule = [];
-    let remainingBalance = loanAmount;
-    const totalInterest = results.flatTotalInterest;
-    const monthlyInterest = totalInterest / tenure;
-
-    for (let month = 1; month <= tenure; month++) {
-        const interest = monthlyInterest;
-        const principal = emi - interest;
-        remainingBalance -= principal;
-
-        schedule.push({
-            month,
-            emi,
-            principal,
-            interest,
-            balance: Math.max(0, remainingBalance)
-        });
-    }
-
-    return schedule;
-}
-
-function generateReducingAmortizationSchedule() {
-    const results = currentState.results;
-    const monthlyRate = results.reducingRate / 100 / 12;
-    const loanAmount = results.loanAmount;
-    const tenure = results.tenure;
-    const emi = results.reducingEMI;
-
-    const schedule = [];
-    let remainingBalance = loanAmount;
-
-    for (let month = 1; month <= tenure; month++) {
-        const interest = remainingBalance * monthlyRate;
-        const principal = emi - interest;
-        remainingBalance -= principal;
-
-        schedule.push({
-            month,
-            emi,
-            principal,
-            interest,
-            balance: Math.max(0, remainingBalance)
-        });
-    }
-
-    return schedule;
-}
-
-function populateTable(schedule) {
-    const tableBody = document.getElementById('tableBody');
+    // populate table
     tableBody.innerHTML = '';
-
     schedule.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${row.month}</td>
-            <td>${formatCurrency(row.emi)}</td>
-            <td>${formatCurrency(row.principal)}</td>
-            <td>${formatCurrency(row.interest)}</td>
-            <td>${formatCurrency(row.balance)}</td>
-        `;
-        tableBody.appendChild(tr);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${row.month}</td>
+                      <td style="text-align:right">${formatCurrency(row.emi)}</td>
+                      <td style="text-align:right">${formatCurrency(row.principal)}</td>
+                      <td style="text-align:right">${formatCurrency(row.interest)}</td>
+                      <td style="text-align:right">${formatCurrency(row.balance)}</td>`;
+      tableBody.appendChild(tr);
     });
-}
 
-// Download CSV
-document.getElementById('downloadBtn').addEventListener('click', () => {
-    const rateType = document.getElementById('modalRateType').textContent. includes('Flat') ? 'flat' : 'reducing';
-    const schedule = rateType === 'flat'
-        ? generateFlatAmortizationSchedule()
-        : generateReducingAmortizationSchedule();
+    // store current modal type for download
+    modal.dataset.type = type;
+  }
 
-    let csv = 'Month,EMI,Principal,Interest,Remaining Balance\n';
-    schedule.forEach(row => {
-        csv += `${row.month},${row.emi. toFixed(2)},${row.principal.toFixed(2)},${row.interest.toFixed(2)},${row.balance.toFixed(2)}\n`;
+  function closeModalFn() {
+    modal.setAttribute('aria-hidden', 'true');
+    tableBody.innerHTML = '';
+  }
+
+  function generateFlatSchedule(results) {
+    const { principal, tenure, flatEMI, flatTotalInterest } = results;
+    const monthlyInterest = flatTotalInterest / tenure;
+    let remaining = principal;
+    const out = [];
+    for (let m = 1; m <= tenure; m++) {
+      const interest = monthlyInterest;
+      const principalPaid = Math.min(remaining, flatEMI - interest);
+      remaining = Math.max(0, remaining - principalPaid);
+      out.push({ month: m, emi: flatEMI, principal: principalPaid, interest, balance: remaining });
+    }
+    return out;
+  }
+
+  function generateReducingSchedule(results) {
+    const { principal, tenure, reducingEMI, reducingRate } = results;
+    const monthlyRate = (reducingRate / 100) / 12;
+    let remaining = principal;
+    const out = [];
+    for (let m = 1; m <= tenure; m++) {
+      const interest = remaining * monthlyRate;
+      const principalPaid = reducingEMI - interest;
+      remaining = Math.max(0, remaining - principalPaid);
+      out.push({ month: m, emi: reducingEMI, principal: principalPaid, interest, balance: remaining });
+    }
+    return out;
+  }
+
+  function downloadCSV() {
+    const type = modal.dataset.type || 'flat';
+    const schedule = type === 'flat' ? generateFlatSchedule(lastResults) : generateReducingSchedule(lastResults);
+
+    let csv = 'Month,EMI,Principal,Interest,Balance\n';
+    schedule.forEach(r => {
+      csv += `${r.month},${Number(r.emi).toFixed(2)},${Number(r.principal).toFixed(2)},${Number(r.interest).toFixed(2)},${Number(r.balance).toFixed(2)}\n`;
     });
 
     const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document. createElement('a');
-    a.href = url;
-    a. download = `emi-schedule-${rateType}-rate.csv`;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `emi_schedule_${type}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-});
+    URL.revokeObjectURL(a.href);
+  }
 
-// Utility Functions
-function formatCurrency(value) {
-    return '₹' + value.toLocaleString('en-IN', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    });
-}
+  // start
+  init();
+})();
