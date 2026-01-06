@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two-Wheeler Loan EMI Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare. com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header with Theme Toggle -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-motorcycle"></i>
+                    <h1>Two-Wheeler EMI Calculator</h1>
+                </div>
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Input Section -->
+            <section class="glass-card input-section">
+                <h2><i class="fas fa-calculator"></i> Loan Details</h2>
+                
+                <div class="input-group">
+                    <label for="onRoadPrice">
+                        On-Road Price <span class="currency">₹</span>
+                        <span class="help-icon" title="Total cost including taxes, registration, insurance">? </span>
+                    </label>
+                    <input 
+                        type="number" 
+                        id="onRoadPrice" 
+                        placeholder="Enter on-road price" 
+                        min="0" 
+                        step="1000"
+                        value="500000"
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="downPayment">
+                        Down Payment <span class="currency">₹</span>
+                        <span class="help-icon" title="Initial amount paid upfront">?</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        id="downPayment" 
+                        placeholder="Enter down payment" 
+                        min="0" 
+                        step="1000"
+                        value="100000"
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="tenure">
+                        Loan Tenure <span class="unit">(months)</span>
+                        <span class="help-icon" title="Duration of the loan">?</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        id="tenure" 
+                        placeholder="Enter tenure in months" 
+                        min="1" 
+                        max="84"
+                        step="1"
+                        value="60"
+                    >
+                </div>
+
+                <!-- Interest Rate Selection -->
+                <div class="interest-rate-section">
+                    <div class="rate-toggle">
+                        <button class="rate-btn active" data-rate-type="flat">
+                            <i class="fas fa-percent"></i> Flat Rate
+                        </button>
+                        <button class="rate-btn" data-rate-type="reducing">
+                            <i class="fas fa-arrow-down"></i> Reducing Rate
+                        </button>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="interestRate">
+                            Interest Rate <span class="unit">(%)</span>
+                            <span class="help-icon" title="Enter either flat or reducing rate - the other will auto-calculate">?</span>
+                        </label>
+                        <div class="interest-input-wrapper">
+                            <input 
+                                type="number" 
+                                id="interestRate" 
+                                placeholder="Enter interest rate" 
+                                min="0" 
+                                max="30"
+                                step="0.1"
+                                value="8. 5"
+                            >
+                            <span class="rate-type-label" id="rateTypeLabel">Flat Rate</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="calculate-btn" id="calculateBtn">
+                    <i class="fas fa-calculator"></i> Calculate EMI
+                </button>
+            </section>
+
+            <!-- Results Section -->
+            <section class="glass-card results-section" id="resultsSection" style="display: none;">
+                <h2><i class="fas fa-chart-pie"></i> Results</h2>
+                
+                <div class="results-grid">
+                    <!-- Flat Rate Card -->
+                    <div class="result-card">
+                        <div class="card-header">
+                            <h3>Flat Interest Rate</h3>
+                            <span class="rate-badge" id="flatRateBadge">8.5%</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="result-item">
+                                <span class="label">Loan Amount</span>
+                                <span class="value" id="flatLoanAmount">₹4,00,000</span>
+                            </div>
+                            <div class="result-item highlighted">
+                                <span class="label">Monthly EMI</span>
+                                <span class="value large" id="flatEmi">₹7,567</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">Total Interest</span>
+                                <span class="value" id="flatTotalInterest">₹2,54,020</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">Total Amount Payable</span>
+                                <span class="value" id="flatTotalPayable">₹6,54,020</span>
+                            </div>
+                        </div>
+                        <button class="breakdown-btn" data-rate-type="flat">
+                            <i class="fas fa-list"></i> View Breakdown
+                        </button>
+                    </div>
+
+                    <!-- Reducing Rate Card -->
+                    <div class="result-card">
+                        <div class="card-header">
+                            <h3>Reducing Interest Rate</h3>
+                            <span class="rate-badge" id="reducingRateBadge">2.76%</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="result-item">
+                                <span class="label">Loan Amount</span>
+                                <span class="value" id="reducingLoanAmount">₹4,00,000</span>
+                            </div>
+                            <div class="result-item highlighted">
+                                <span class="label">Monthly EMI</span>
+                                <span class="value large" id="reducingEmi">₹7,567</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">Total Interest</span>
+                                <span class="value" id="reducingTotalInterest">₹2,54,020</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">Total Amount Payable</span>
+                                <span class="value" id="reducingTotalPayable">₹6,54,020</span>
+                            </div>
+                        </div>
+                        <button class="breakdown-btn" data-rate-type="reducing">
+                            <i class="fas fa-list"></i> View Breakdown
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Comparison Chart -->
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-bar"></i> Comparison</h3>
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Breakdown Modal -->
+            <div class="modal" id="breakdownModal">
+                <div class="modal-content glass-card">
+                    <div class="modal-header">
+                        <h2>Amortization Schedule - <span id="modalRateType">Flat Rate</span></h2>
+                        <button class="close-modal" id="closeModal">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="table-wrapper">
+                            <table class="amortization-table" id="amortizationTable">
+                                <thead>
+                                    <tr>
+                                        <th>Month</th>
+                                        <th>EMI</th>
+                                        <th>Principal</th>
+                                        <th>Interest</th>
+                                        <th>Balance</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody">
+                                    <!-- Populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="download-btn" id="downloadBtn">
+                            <i class="fas fa-download"></i> Download CSV
+                        </button>
+                        <button class="close-btn" id="closeModalBtn">Close</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2026 Two-Wheeler EMI Calculator.  Built with <i class="fas fa-heart"></i> by <a href="https://github.com/0pradip0">@0pradip0</a></p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
