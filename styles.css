@@ -11,20 +11,20 @@
     --text-primary: #1d1d1f;
     --text-secondary:  #86868b;
     --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border:  rgba(255, 255, 255, 0.2);
-    --accent: #ff9500;
-    --accent-light:  #fff3e0;
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --accent:  #ff9500;
+    --accent-light: #fff3e0;
     --success: #34c759;
     --error: #ff3b30;
-    --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --shadow:  0 8px 32px rgba(0, 0, 0, 0.1);
     --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 body. dark-theme {
     /* Dark Theme */
     --bg-primary: #1a1a1a;
-    --bg-secondary: #2d2d2d;
-    --text-primary:  #f5f5f7;
+    --bg-secondary:  #2d2d2d;
+    --text-primary: #f5f5f7;
     --text-secondary:  #a1a1a6;
     --glass-bg:  rgba(45, 45, 45, 0.6);
     --glass-border:  rgba(255, 255, 255, 0.1);
@@ -36,13 +36,14 @@ body. dark-theme {
     --shadow-light:  0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-html, body {
+html,
+body {
     height: 100%;
     scroll-behavior: smooth;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family:  -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background:  linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
     color: var(--text-primary);
     transition: background 0.3s ease, color 0.3s ease;
@@ -58,7 +59,7 @@ body {
 }
 
 /* Header Styles */
-.header {
+. header {
     padding: 2rem 2rem;
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
@@ -69,7 +70,7 @@ body {
     z-index: 100;
 }
 
-. header-content {
+.header-content {
     max-width: 1200px;
     margin: 0 auto;
     display: flex;
@@ -101,10 +102,10 @@ body {
 .theme-toggle {
     width: 50px;
     height: 50px;
-    border: none;
+    border:  none;
     background: var(--glass-bg);
     border-radius: 50%;
-    cursor:  pointer;
+    cursor: pointer;
     font-size: 1.5rem;
     color: var(--text-primary);
     display: flex;
@@ -121,14 +122,14 @@ body {
 }
 
 /* Main Content */
-.main-content {
-    flex: 1;
+. main-content {
+    flex:  1;
     max-width: 1200px;
     margin: 0 auto;
     width: 100%;
     padding:  2rem;
-    display: flex;
-    flex-direction: column;
+    display:  flex;
+    flex-direction:  column;
     gap: 2rem;
 }
 
@@ -139,7 +140,7 @@ body {
     border: 1px solid var(--glass-border);
     border-radius: 20px;
     padding: 2rem;
-    box-shadow:  var(--shadow);
+    box-shadow: var(--shadow);
     transition: all 0.3s ease;
 }
 
@@ -162,7 +163,7 @@ body {
     color: var(--accent);
 }
 
-.input-group {
+. input-group {
     margin-bottom: 1.5rem;
 }
 
@@ -176,7 +177,8 @@ body {
     font-size: 0.95rem;
 }
 
-.currency, .unit {
+.currency,
+.unit {
     font-size: 0.85rem;
     color: var(--text-secondary);
     font-weight: normal;
@@ -199,9 +201,9 @@ body {
 
 input[type="number"] {
     width: 100%;
-    padding: 1rem;
+    padding:  1rem;
     border: 2px solid var(--glass-border);
-    background: rgba(var(--glass-bg-rgb), 0.5);
+    background: rgba(255, 255, 255, 0.5);
     border-radius: 12px;
     color: var(--text-primary);
     font-size: 1rem;
@@ -209,7 +211,7 @@ input[type="number"] {
     font-family: 'Segoe UI', Roboto, sans-serif;
 }
 
-input[type="number"]: focus {
+input[type="number"]:focus {
     outline: none;
     border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.1);
@@ -257,13 +259,13 @@ input[type="number"]::placeholder {
     color: var(--text-primary);
 }
 
-.interest-input-wrapper {
+. interest-input-wrapper {
     position: relative;
     display: flex;
     gap: 0.5rem;
 }
 
-.interest-input-wrapper input {
+. interest-input-wrapper input {
     flex: 1;
 }
 
@@ -271,7 +273,7 @@ input[type="number"]::placeholder {
     position: absolute;
     right: 1rem;
     top: 50%;
-    transform:  translateY(-50%);
+    transform: translateY(-50%);
     background: var(--accent-light);
     color: var(--accent);
     padding: 0.4rem 0.8rem;
@@ -293,8 +295,8 @@ input[type="number"]::placeholder {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    display:  flex;
-    align-items:  center;
+    display: flex;
+    align-items: center;
     justify-content: center;
     gap: 0.5rem;
     margin-top: 1rem;
@@ -305,7 +307,7 @@ input[type="number"]::placeholder {
     box-shadow: 0 8px 16px rgba(255, 149, 0, 0.3);
 }
 
-.calculate-btn: active {
+.calculate-btn:active {
     transform: translateY(0);
 }
 
@@ -314,7 +316,7 @@ input[type="number"]::placeholder {
     font-size: 1.5rem;
     margin-bottom: 1.5rem;
     display: flex;
-    align-items:  center;
+    align-items: center;
     gap: 0.5rem;
     color: var(--text-primary);
 }
@@ -377,7 +379,7 @@ input[type="number"]::placeholder {
     justify-content: space-between;
     align-items: center;
     padding: 0.8rem 0;
-    border-bottom:  1px solid var(--glass-border);
+    border-bottom: 1px solid var(--glass-border);
 }
 
 .result-item:last-child {
@@ -387,7 +389,7 @@ input[type="number"]::placeholder {
 .result-item. highlighted {
     background: var(--accent-light);
     padding: 1rem;
-    border-radius:  8px;
+    border-radius: 8px;
     border-bottom: none ! important;
     margin:  0.5rem -1.5rem;
     padding-left: 1rem;
@@ -405,7 +407,7 @@ input[type="number"]::placeholder {
     font-size: 1rem;
 }
 
-.result-item . value. large {
+. result-item .value. large {
     font-size: 1.3rem;
     color: var(--accent);
 }
@@ -417,7 +419,7 @@ input[type="number"]::placeholder {
     background: var(--bg-secondary);
     color: var(--text-primary);
     border: 1px solid var(--glass-border);
-    border-radius:  8px;
+    border-radius: 8px;
     font-weight:  600;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -438,8 +440,8 @@ input[type="number"]::placeholder {
     background: var(--glass-bg);
     backdrop-filter: blur(10px);
     border: 1px solid var(--glass-border);
-    border-radius: 16px;
-    padding: 1.5rem;
+    border-radius:  16px;
+    padding:  1.5rem;
     margin-top: 1rem;
 }
 
@@ -452,7 +454,7 @@ input[type="number"]::placeholder {
 }
 
 .chart-container h3 i {
-    color:  var(--accent);
+    color: var(--accent);
 }
 
 #comparisonChart {
@@ -486,7 +488,7 @@ input[type="number"]::placeholder {
     display: flex;
     flex-direction: column;
     border-radius: 20px;
-    overflow:  hidden;
+    overflow: hidden;
 }
 
 .modal-header {
@@ -527,7 +529,7 @@ input[type="number"]::placeholder {
 }
 
 .amortization-table {
-    width: 100%;
+    width:  100%;
     border-collapse: collapse;
 }
 
@@ -574,13 +576,14 @@ input[type="number"]::placeholder {
     justify-content: flex-end;
 }
 
-.download-btn, .close-btn {
+.download-btn,
+.close-btn {
     padding: 0.8rem 1.5rem;
     border-radius: 8px;
     border: none;
     font-weight: 600;
-    cursor:  pointer;
-    transition: all 0.3s ease;
+    cursor: pointer;
+    transition:  all 0.3s ease;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -663,7 +666,8 @@ input[type="number"]::placeholder {
         flex-direction: column;
     }
 
-    .download-btn, .close-btn {
+    .download-btn,
+    .close-btn {
         width: 100%;
         justify-content: center;
     }
