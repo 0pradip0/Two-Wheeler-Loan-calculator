@@ -3,143 +3,123 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Two-Wheeler EMI Calculator</title>
+  <title>Two‑Wheeler EMI Calculator</title>
 
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
 
-  <!-- Local styles -->
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="app">
-    <header class="app-header">
-      <div class="header-inner">
-        <div class="brand">
-          <i class="fa-solid fa-motorcycle"></i>
-          <h1>Two‑Wheeler EMI Calculator</h1>
-        </div>
-
-        <div class="controls">
-          <button id="themeToggle" class="icon-btn" aria-label="Toggle theme">
-            <i class="fa-solid fa-moon"></i>
-          </button>
-        </div>
+  <div class="container">
+    <header class="topbar">
+      <div class="brand">
+        <i class="fa-solid fa-motorcycle"></i>
+        <h1>Two‑Wheeler EMI Calculator</h1>
+      </div>
+      <div class="top-controls">
+        <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i class="fa-solid fa-moon"></i></button>
       </div>
     </header>
 
+    <div class="tabs" role="tablist" aria-label="Input mode">
+      <button class="tab active" data-mode="emi">Input EMI</button>
+      <button class="tab" data-mode="reducing">Input Reducing %</button>
+      <button class="tab" data-mode="flat">Input Flat %</button>
+    </div>
+
     <main class="main">
-      <section class="panel inputs-panel glass">
-        <h2>Loan Details</h2>
+      <!-- Input Card -->
+      <section class="card input-card">
+        <div class="card-inner">
+          <div class="form-row">
+            <label class="field">
+              <span class="label">On‑Road Price</span>
+              <input id="onRoadPrice" type="number" min="0" step="100" value="111577" />
+            </label>
 
-        <div class="form-grid">
-          <label>
-            <span class="label-text">On‑Road Price <small>₹</small></span>
-            <input id="onRoadPrice" type="number" min="0" step="100" value="500000" />
-          </label>
+            <label class="field">
+              <span class="label">Down Payment</span>
+              <input id="downPayment" type="number" min="0" step="100" value="65177" />
+            </label>
 
-          <label>
-            <span class="label-text">Down Payment <small>₹</small></span>
-            <input id="downPayment" type="number" min="0" step="100" value="100000" />
-          </label>
-
-          <label>
-            <span class="label-text">Loan Tenure <small>(months)</small></span>
-            <input id="tenure" type="number" min="1" max="240" step="1" value="60" />
-          </label>
-
-          <div class="rate-selector">
-            <div class="rate-toggle" role="tablist" aria-label="Rate type">
-              <button class="rate-btn active" data-type="flat">Flat Rate</button>
-              <button class="rate-btn" data-type="reducing">Reducing Rate</button>
-            </div>
-
-            <label class="rate-input">
-              <span class="label-text">Interest Rate <small>(%)</small></span>
-              <div class="rate-field">
-                <input id="interestRate" type="number" min="0" max="100" step="0.01" placeholder="Enter interest rate" value="8.5" />
-                <span id="rateTypeLabel" class="rate-pill">Flat</span>
-              </div>
+            <label class="field">
+              <span class="label">Tenure (months)</span>
+              <input id="tenure" type="number" min="1" max="240" step="1" value="23" />
             </label>
           </div>
-        </div>
 
-        <div class="actions">
-          <button id="calculateBtn" class="primary-btn">Calculate EMI</button>
+          <div class="chips-wrap">
+            <div class="chip">
+              <div class="chip-title">MONTHLY EMI (₹)</div>
+              <div id="chipEmi" class="chip-value">—</div>
+              <div class="chip-tag">RESULT</div>
+            </div>
+
+            <div class="chip">
+              <div class="chip-title">REDUCING RATE (%)</div>
+              <div id="chipReducing" class="chip-value green">—</div>
+              <div class="chip-tag">RESULT</div>
+            </div>
+
+            <div class="chip">
+              <div class="chip-title">FLAT RATE (%)</div>
+              <div id="chipFlat" class="chip-value orange">—</div>
+              <div class="chip-tag input-tag" id="inputTag">INPUT</div>
+            </div>
+          </div>
+
+          <div class="cta-row">
+            <button id="calculateBtn" class="cta">Calculate All <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
         </div>
       </section>
 
-      <section id="resultsSection" class="panel results-panel glass hidden">
-        <h2>Results</h2>
-
-        <div class="results-grid">
-          <div class="card">
-            <div class="card-head">
-              <h3>Flat Interest</h3>
-              <span id="flatRateBadge" class="badge">—</span>
-            </div>
-            <div class="card-body">
-              <div class="row"><span>Loan Amount</span><strong id="flatLoanAmount">—</strong></div>
-              <div class="row highlighted"><span>Monthly EMI</span><strong id="flatEmi">—</strong></div>
-              <div class="row"><span>Total Interest</span><strong id="flatTotalInterest">—</strong></div>
-              <div class="row"><span>Total Payable</span><strong id="flatTotalPayable">—</strong></div>
-            </div>
-            <div class="card-foot">
-              <button class="secondary-btn breakdown-btn" data-rate="flat">View Breakdown</button>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-head">
-              <h3>Reducing Interest</h3>
-              <span id="reducingRateBadge" class="badge">—</span>
-            </div>
-            <div class="card-body">
-              <div class="row"><span>Loan Amount</span><strong id="reducingLoanAmount">—</strong></div>
-              <div class="row highlighted"><span>Monthly EMI</span><strong id="reducingEmi">—</strong></div>
-              <div class="row"><span>Total Interest</span><strong id="reducingTotalInterest">—</strong></div>
-              <div class="row"><span>Total Payable</span><strong id="reducingTotalPayable">—</strong></div>
-            </div>
-            <div class="card-foot">
-              <button class="secondary-btn breakdown-btn" data-rate="reducing">View Breakdown</button>
-            </div>
-          </div>
+      <!-- Results / Summary -->
+      <section class="summary-grid">
+        <div class="summary-card">
+          <div class="summary-title">Financial Breakdown</div>
+          <div class="summary-row"><span>Loan Principal</span><strong id="summaryPrincipal">—</strong></div>
+          <div class="summary-row"><span>Total Repayment</span><strong id="summaryTotal">—</strong></div>
+          <div class="summary-row danger"><span>Total Interest Cost</span><strong id="summaryInterest">—</strong></div>
         </div>
 
-        <div class="chart-wrap glass">
+        <div class="summary-card">
+          <div class="summary-title">Calculation Method</div>
+          <div class="method-text" id="calcMethod">—</div>
+        </div>
+      </section>
+
+      <!-- Chart & Details -->
+      <section id="resultsSection" class="results-section hidden">
+        <div class="chart-card card">
           <h3>Comparison</h3>
-          <canvas id="comparisonChart" width="600" height="320"></canvas>
+          <canvas id="comparisonChart" height="220"></canvas>
         </div>
       </section>
     </main>
 
-    <footer class="app-footer">
-      <div>© 2026 Two‑Wheeler EMI Calculator</div>
-    </footer>
+    <footer class="footer">© 2026 Two‑Wheeler EMI Calculator</footer>
   </div>
 
-  <!-- Modal for amortization -->
+  <!-- Breakdown Modal -->
   <div id="breakdownModal" class="modal" aria-hidden="true">
-    <div class="modal-inner glass">
+    <div class="modal-inner card">
       <div class="modal-head">
-        <h3 id="modalRateType">Schedule</h3>
-        <button id="closeModal" class="icon-btn" aria-label="Close modal"><i class="fa-solid fa-xmark"></i></button>
+        <h3 id="modalRateType">Amortization Schedule</h3>
+        <button id="closeModal" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
       </div>
-
       <div class="modal-body">
         <div class="table-wrap">
           <table id="amortizationTable">
-            <thead>
-              <tr><th>Month</th><th>EMI</th><th>Principal</th><th>Interest</th><th>Balance</th></tr>
-            </thead>
+            <thead><tr><th>Month</th><th>EMI</th><th>Principal</th><th>Interest</th><th>Balance</th></tr></thead>
             <tbody id="tableBody"></tbody>
           </table>
         </div>
       </div>
-
       <div class="modal-foot">
         <button id="downloadBtn" class="secondary-btn">Download CSV</button>
         <button id="closeModalBtn" class="secondary-btn">Close</button>
@@ -147,7 +127,6 @@
     </div>
   </div>
 
-  <!-- Local script -->
   <script src="script.js"></script>
 </body>
 </html>
