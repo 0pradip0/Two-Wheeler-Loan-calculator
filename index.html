@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Analyzer Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- THEME VARIABLES --- */
+        :root {
+            --radius: 16px;
+            --transition: 0.3s ease;
+        }
+
+        /* Dark Theme */
+        html[data-theme="dark"] {
+            --bg-body: radial-gradient(circle at top left, #1a1a2e, #16213e, #0f3460);
+            --glass: rgba(22, 33, 62, 0.9);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --text-main: #fff;
+            --text-muted: #aebbce;
+            --input-bg: rgba(0, 0, 0, 0.3);
+            
+            /* Accents */
+            --col-a: #4cc9f0; 
+            --col-b: #f72585; 
+            --step-header: #4ade80;
+            --success: #00f5d4;
+            --danger: #ff5c8d;
+            --table-head: rgba(255,255,255,0.05);
+        }
+
+        /* Light Theme */
+        html[data-theme="light"] {
+            --bg-body: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            --glass: rgba(255, 255, 255, 0.95);
+            --glass-border: 1px solid rgba(0, 0, 0, 0.05);
+            --text-main: #2d3436;
+            --text-muted: #636e72;
+            --input-bg: #fff;
+
+            /* Accents */
+            --col-a: #0984e3;
+            --col-b: #d63031;
+            --step-header: #00b894;
+            --success: #00b894;
+            --danger: #d63031;
+            --table-head: rgba(0,0,0,0.05);
+        }
+
+        /* --- GLOBAL STYLES --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-body);
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 950px;
+        }
+
+        /* --- HEADER & TOGGLE --- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 0 10px;
+        }
+        h1 {
+            font-weight: 700;
+            background: linear-gradient(to right, var(--col-a), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2rem;
+        }
+        .subtitle { font-size: 0.9rem; color: var(--text-muted); margin-top: 5px; }
+
+        .theme-btn {
+            background: var(--glass);
+            border: var(--glass-border);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: var(--transition);
+        }
+        .theme-btn:hover { background: rgba(255,255,255,0.1); }
+
+        /* --- MAIN TABS --- */
+        .nav-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            background: var(--glass);
+            border: var(--glass-border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 600;
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+        }
+        .nav-item:hover { transform: translateY(-3px); }
+        .nav-item.active {
+            background: linear-gradient(135deg, var(--col-a) 0%, #4361ee 100%);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 10px 20px rgba(67, 97, 238, 0.3);
+        }
+        .nav-item:nth-child(3).active {
+            background: linear-gradient(135deg, #7209b7 0%, var(--col-b) 100%);
+            box-shadow: 0 10px 20px rgba(247, 37, 133, 0.3);
+        }
+
+        /* --- CARDS --- */
+        .mode-section {
+            display: none;
+            animation: slideUp 0.4s ease forwards;
+        }
+        .mode-section.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border: var(--glass-border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        /* --- FORMS --- */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+        input, select {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: var(--input-bg);
+            color: var(--text-main);
+            font-size: 1rem;
+            font-family: 'Outfit', sans-serif;
+            transition: var(--transition);
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--col-a);
+            box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.2);
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(to right, #4361ee, #3a0ca3);
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: var(--transition);
+        }
+        .btn-action:hover { opacity: 0.9; transform: scale(1.02); }
+
+        /* --- RESULTS --- */
+        .results-area {
+            margin-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 1.5rem;
+        }
+        .res-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 1.05rem;
+        }
+        .res-val { font-weight: 700; }
+        .highlight { color: var(--success); font-size: 1.2rem; }
+        .danger { color: var(--danger); }
+
+        /* --- MATH BOX --- */
+        .math-display {
+            background: rgba(0,0,0,0.25);
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            margin-top: 25px;
+            border: 1px solid rgba(255,255,255,0.05);
+            line-height: 1.6;
+        }
+        .math-step { margin-bottom: 20px; }
+        .math-step:last-child { margin-bottom: 0; }
+        .math-header { color: var(--step-header); font-weight: 700; margin-bottom: 8px; display: block; font-size: 1rem; }
+        .math-row { display: block; margin-left: 0; color: var(--text-muted); }
+        .math-result { margin-left: 20px; color: var(--text-main); font-weight: 600; }
+
+        /* --- TABLE STYLES --- */
+        .table-container {
+            margin-top: 30px;
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background: var(--table-head); padding: 12px; color: var(--text-muted); font-size: 0.9rem; }
+        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        tr:last-child td { border-bottom: none; }
+        
+        /* --- BATTLE MODE SPECIFIC --- */
+        .battle-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 25px;
+            background: rgba(0,0,0,0.2);
+            padding: 5px;
+            border-radius: 50px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .battle-toggle {
+            padding: 10px 25px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: var(--transition);
+        }
+        .battle-toggle.active { background: var(--text-main); color: #000; }
+
+        .battle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .battle-col {
+            background: rgba(255,255,255,0.03);
+            padding: 20px;
+            border-radius: var(--radius);
+            border: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        .battle-col.col-a { border-top: 4px solid var(--col-a); }
+        .battle-col.col-b { border-top: 4px solid var(--col-b); }
+        .col-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 15px; text-align: center; }
+        
+        .winner-banner {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            display: none;
+            background: linear-gradient(135deg, rgba(0,245,212,0.2) 0%, rgba(0,245,212,0.05) 100%);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        @media(max-width: 768px) {
+            .nav-tabs { flex-direction: column; gap: 10px; }
+            .grid-2, .battle-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="header">
+        <div>
+            <h1>Loan Analyzer Pro</h1>
+            <p class="subtitle">Math made beautiful.</p>
+        </div>
+        <button class="theme-btn" onclick="toggleTheme()" id="themeIcon">☀️</button>
+    </div>
+
+    <div class="nav-tabs">
+        <div class="nav-item active" onclick="switchTab('mode1', this)">1. Check Quote</div>
+        <div class="nav-item" onclick="switchTab('mode2', this)">2. Calculate EMI</div>
+        <div class="nav-item" onclick="switchTab('mode3', this)">3. Loan Battle ⚔️</div>
+    </div>
+
+    <div id="mode1" class="mode-section active glass-card">
+        <h2 style="margin-bottom:20px; color:var(--col-a)">Decoder: What's the Real Rate?</h2>
+        <div class="grid-2">
+            <div class="form-group"><label>On-Road Price (₹)</label><input type="number" id="m1_price" value="111500"></div>
+            <div class="form-group"><label>Down Payment (₹)</label><input type="number" id="m1_dp" value="65000"></div>
+            <div class="form-group"><label>Tenure (Months)</label><input type="number" id="m1_tenure" value="23"></div>
+            <div class="form-group"><label>Quoted EMI (₹)</label><input type="number" id="m1_emi" value="2600"></div>
+        </div>
+        <button class="btn-action" onclick="calcQuote()">Reveal True Interest Rate</button>
+
+        <div id="m1_res" class="results-area" style="display:none;">
+            <div class="res-row"><span>Principal Amount:</span> <span class="res-val" id="m1_r_p">0</span></div>
+            <div class="res-row"><span>Total Interest:</span> <span class="res-val danger" id="m1_r_int">0</span></div>
+            <div class="res-row"><span>Flat Rate (Nominal):</span> <span class="res-val" id="m1_r_flat">0</span></div>
+            <div class="res-row"><span>Effective Reducing Rate (IRR):</span> <span class="res-val highlight" id="m1_r_irr">0</span></div>
+            <div class="math-display" id="m1_math"></div>
+        </div>
+    </div>
+
+    <div id="mode2" class="mode-section glass-card">
+        <h2 style="margin-bottom:20px; color:var(--col-a)">Planner: Calculate Payments</h2>
+        <div class="grid-2">
+            <div class="form-group"><label>On-Road Price (₹)</label><input type="number" id="m2_price" value="138576"></div>
+            <div class="form-group"><label>Down Payment (₹)</label><input type="number" id="m2_dp" value="80000"></div>
+            <div class="form-group"><label>Interest Rate (% p.a.)</label><input type="number" id="m2_rate" value="12"></div>
+            <div class="form-group">
+                <label>Rate Type</label>
+                <select id="m2_type">
+                    <option value="reducing">Reducing (Bank)</option>
+                    <option value="flat">Flat (Dealer)</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Tenure (Months)</label><input type="number" id="m2_tenure" value="23"></div>
+        </div>
+        <button class="btn-action" onclick="calcEMI()">Calculate</button>
+
+        <div id="m2_res" class="results-area" style="display:none;">
+            <div class="res-row"><span>Monthly EMI:</span> <span class="res-val highlight" id="m2_r_emi">0</span></div>
+            <div class="res-row"><span>Total Payment:</span> <span class="res-val" id="m2_r_total">0</span></div>
+            <div class="res-row"><span>Equivalent <span id="m2_equiv_label">Flat</span> Rate:</span> <span class="res-val" id="m2_r_equiv">0</span></div>
+            
+            <div class="math-display" id="m2_math"></div>
+
+            <div class="table-container">
+                <h3 style="padding:15px; color:var(--text-muted); font-size:1rem;">Repayment Schedule</h3>
+                <table id="m2_table">
+                    <thead><tr><th>Month</th><th>Principal Part</th><th>Interest Part</th><th>Balance</th></tr></thead>
+                    <tbody id="m2_tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="mode3" class="mode-section glass-card">
+        
+        <div class="battle-controls">
+            <div class="battle-toggle active" onclick="setBattleType('quote')" id="btn_battle_quote">Compare Quotes</div>
+            <div class="battle-toggle" onclick="setBattleType('rate')" id="btn_battle_rate">Compare Rates</div>
+        </div>
+
+        <div class="battle-grid">
+            <div class="battle-col col-a">
+                <div class="col-title" style="color:var(--col-a)">Loan Option A</div>
+                <div class="form-group"><label>Price (₹)</label><input type="number" id="ba_price" value="111500"></div>
+                <div class="form-group"><label>Down Pay (₹)</label><input type="number" id="ba_dp" value="65000"></div>
+                <div class="form-group"><label>Tenure (Mo)</label><input type="number" id="ba_tenure" value="23"></div>
+                
+                <div class="input-quote-only">
+                    <div class="form-group"><label>Quoted EMI (₹)</label><input type="number" id="ba_emi" value="2600"></div>
+                </div>
+                <div class="input-rate-only" style="display:none;">
+                    <div class="form-group"><label>Rate (%)</label><input type="number" id="ba_rate" value="24"></div>
+                    <div class="form-group"><label>Type</label><select id="ba_type"><option value="flat">Flat</option><option value="reducing">Reducing</option></select></div>
+                    <div class="form-group"><label>Fees (₹)</label><input type="number" id="ba_fee" value="0"></div>
+                </div>
+            </div>
+
+            <div class="battle-col col-b">
+                <div class="col-title" style="color:var(--col-b)">Loan Option B</div>
+                <div class="form-group"><label>Price (₹)</label><input type="number" id="bb_price" value="111500"></div>
+                <div class="form-group"><label>Down Pay (₹)</label><input type="number" id="bb_dp" value="65000"></div>
+                <div class="form-group"><label>Tenure (Mo)</label><input type="number" id="bb_tenure" value="23"></div>
+
+                <div class="input-quote-only">
+                    <div class="form-group"><label>Quoted EMI (₹)</label><input type="number" id="bb_emi" value="2350"></div>
+                </div>
+                <div class="input-rate-only" style="display:none;">
+                    <div class="form-group"><label>Rate (%)</label><input type="number" id="bb_rate" value="12"></div>
+                    <div class="form-group"><label>Type</label><select id="bb_type"><option value="reducing">Reducing</option><option value="flat">Flat</option></select></div>
+                    <div class="form-group"><label>Fees (₹)</label><input type="number" id="bb_fee" value="500"></div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-action" style="margin-top:25px; background: linear-gradient(to right, #f72585, #7209b7);" onclick="runBattle()">Fight!</button>
+
+        <div id="battle_res" style="display:none;">
+            <div id="winner_box" class="winner-banner"></div>
+            <div class="results-area">
+                <div class="res-row">
+                    <span>Result Metric</span>
+                    <span style="color:var(--col-a)">Option A</span>
+                    <span style="color:var(--col-b)">Option B</span>
+                </div>
+                <div class="res-row">
+                    <span id="label_res_1">Effective Rate</span>
+                    <span id="val_a_1">0%</span>
+                    <span id="val_b_1">0%</span>
+                </div>
+                <div class="res-row">
+                    <span id="label_res_2">Total Interest</span>
+                    <span id="val_a_2">0</span>
+                    <span id="val_b_2">0</span>
+                </div>
+                <div class="math-display" id="battle_math"></div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    /* --- THEME --- */
+    function toggleTheme() {
+        const html = document.documentElement;
+        const isDark = html.getAttribute('data-theme') === 'dark';
+        html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        document.getElementById('themeIcon').innerText = isDark ? '🌙' : '☀️';
+    }
+
+    /* --- TAB SWITCHING --- */
+    function switchTab(modeId, btn) {
+        document.querySelectorAll('.mode-section').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        document.getElementById(modeId).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    /* --- UTILS --- */
+    const getVal = id => parseFloat(document.getElementById(id).value) || 0;
+    const fmt = n => "₹" + Math.round(n).toLocaleString('en-IN');
+
+    /* --- MATH CORE --- */
+    function getIRR(P, emi, n) {
+        let low=0, high=100, mid=0;
+        for(let i=0; i<60; i++) {
+            mid = (low+high)/2;
+            let r = mid/1200;
+            let calc = (r===0) ? P/n : (P * r * Math.pow(1+r, n)) / (Math.pow(1+r, n) - 1);
+            if(calc > emi) high = mid; else low = mid;
+        }
+        return mid; // Annual Reducing Rate
+    }
+
+    function getEMI(P, rate, n, type) {
+        if(type === 'flat') {
+            let int = P * (rate/100) * (n/12);
+            return { emi: (P+int)/n, int: int };
+        } else {
+            let r = rate/1200;
+            let emi = (r===0) ? P/n : (P * r * Math.pow(1+r, n)) / (Math.pow(1+r, n) - 1);
+            return { emi: emi, int: (emi*n) - P };
+        }
+    }
+
+    /* --- MODE 1: CHECK QUOTE --- */
+    function calcQuote() {
+        const P = getVal('m1_price') - getVal('m1_dp');
+        const emi = getVal('m1_emi');
+        const n = getVal('m1_tenure');
+        
+        if(P<=0) return alert('Check amounts');
+
+        const irr = getIRR(P, emi, n);
+        const totalPay = emi * n;
+        const totalInt = totalPay - P;
+        const flatRate = ((totalInt / P) / (n/12)) * 100;
+
+        document.getElementById('m1_res').style.display = 'block';
+        document.getElementById('m1_r_p').innerText = fmt(P);
+        document.getElementById('m1_r_int').innerText = fmt(totalInt);
+        document.getElementById('m1_r_irr').innerText = irr.toFixed(2) + "%";
+        // Fixed: Added Flat Rate update
+        document.getElementById('m1_r_flat').innerText = flatRate.toFixed(2) + "%";
+        
+        document.getElementById('m1_math').innerHTML = `
+<div class="math-step">
+    <div class="math-header">Step 1: Calculate Principal</div>
+    <div class="math-row">Principal = OnRoad (${getVal('m1_price')}) - DownPayment (${getVal('m1_dp')})</div>
+    <div class="math-result">= ${Math.round(P)}</div>
+</div>
+
+<div class="math-step">
+    <div class="math-header">Step 2: Calculate Flat Rate</div>
+    <div class="math-row">Total Paid = EMI (${emi}) × Tenure (${n}) = ${Math.round(totalPay)}</div>
+    <div class="math-row">Total Interest = ${Math.round(totalPay)} - ${Math.round(P)} = ${Math.round(totalInt)}</div>
+    <div class="math-row">Flat Rate = (${Math.round(totalInt)} / ${Math.round(P)}) / (${(n/12).toFixed(2)})</div>
+    <div class="math-result">= ${flatRate.toFixed(2)}% per annum</div>
+</div>
+
+<div class="math-step">
+    <div class="math-header">Step 3: Calculate Reducing Rate (IRR)</div>
+    <div class="math-row">Formula: EMI = P × r × (1+r)ⁿ / ((1+r)ⁿ - 1)</div>
+    <div class="math-row">Solving for 'r' where P=${Math.round(P)}, n=${n}, EMI=${emi}...</div>
+    <div class="math-result">Resulting Reducing Rate = ${irr.toFixed(2)}% per annum</div>
+</div>`;
+    }
+
+    /* --- MODE 2: CALCULATE EMI & TABLE --- */
+    function calcEMI() {
+        const P = getVal('m2_price') - getVal('m2_dp');
+        const n = getVal('m2_tenure');
+        const rate = getVal('m2_rate');
+        const type = document.getElementById('m2_type').value;
+        const res = getEMI(P, rate, n, type);
+        
+        // Calculate Equivalent Rate
+        let equivRate = 0;
+        let equivLabel = "";
+        let effectiveReducing = 0; // For table generation
+
+        if(type === 'flat') {
+            // If Input is Flat, calculate Equivalent Reducing (IRR)
+            equivRate = getIRR(P, res.emi, n);
+            effectiveReducing = equivRate;
+            equivLabel = "Reducing";
+        } else {
+            // If Input is Reducing, calculate Equivalent Flat
+            equivRate = ((res.int / P) / (n/12)) * 100;
+            effectiveReducing = rate;
+            equivLabel = "Flat";
+        }
+
+        document.getElementById('m2_res').style.display = 'block';
+        document.getElementById('m2_r_emi').innerText = fmt(res.emi);
+        document.getElementById('m2_r_total').innerText = fmt(res.emi * n);
+        document.getElementById('m2_r_equiv').innerText = equivRate.toFixed(2) + "%";
+        document.getElementById('m2_equiv_label').innerText = equivLabel;
+
+        // Math Breakdown
+        let formulaText = "";
+        if(type === 'flat') {
+            formulaText = `
+    <div class="math-row">Formula: Interest = P × R × T</div>
+    <div class="math-row">Interest = ${Math.round(P)} × ${rate}% × ${(n/12).toFixed(2)}</div>
+    <div class="math-row">EMI = (Principal + Interest) / Tenure</div>`;
+        } else {
+            formulaText = `
+    <div class="math-row">Formula: EMI = P × r × (1+r)ⁿ / ((1+r)ⁿ - 1)</div>
+    <div class="math-row">Where r = ${rate}% / 12 months</div>`;
+        }
+
+        document.getElementById('m2_math').innerHTML = `
+<div class="math-step">
+    <div class="math-header">Step 1: Calculate Principal</div>
+    <div class="math-row">Principal = ${getVal('m2_price')} - ${getVal('m2_dp')}</div>
+    <div class="math-result">= ${Math.round(P)}</div>
+</div>
+
+<div class="math-step">
+    <div class="math-header">Step 2: Calculate Interest & EMI</div>
+    ${formulaText}
+    <div class="math-result">Calculated EMI = ${Math.round(res.emi)}</div>
+    <div class="math-result">Total Interest = ${Math.round(res.int)}</div>
+</div>
+<div class="math-step">
+    <div class="math-header">Step 3: Equivalent ${equivLabel} Rate</div>
+    <div class="math-result">= ${equivRate.toFixed(2)}%</div>
+</div>`;
+
+        // Fixed: Generate Table
+        const tbody = document.getElementById('m2_tbody');
+        tbody.innerHTML = "";
+        let bal = P;
+        let r_mo = effectiveReducing / 1200;
+        
+        for(let i=1; i<=n; i++) {
+            let intPart = bal * r_mo;
+            let prinPart = res.emi - intPart;
+            if(i === n) { prinPart = bal; intPart = res.emi - bal; } // Adjust last month
+            bal -= prinPart;
+            if(bal < 0) bal = 0;
+
+            const row = `<tr>
+                <td>${i}</td>
+                <td>${fmt(prinPart)}</td>
+                <td>${fmt(intPart)}</td>
+                <td>${fmt(bal)}</td>
+            </tr>`;
+            tbody.innerHTML += row;
+        }
+    }
+
+    /* --- MODE 3 (BATTLE) LOGIC --- */
+    let battleType = 'quote';
+
+    function setBattleType(type) {
+        battleType = type;
+        document.querySelectorAll('.battle-toggle').forEach(el => el.classList.remove('active'));
+        document.getElementById('btn_battle_' + type).classList.add('active');
+
+        // Toggle Inputs
+        if(type === 'quote') {
+            document.querySelectorAll('.input-quote-only').forEach(el => el.style.display = 'block');
+            document.querySelectorAll('.input-rate-only').forEach(el => el.style.display = 'none');
+        } else {
+            document.querySelectorAll('.input-quote-only').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.input-rate-only').forEach(el => el.style.display = 'block');
+        }
+        document.getElementById('battle_res').style.display = 'none';
+    }
+
+    function runBattle() {
+        const Pa = getVal('ba_price') - getVal('ba_dp');
+        const Na = getVal('ba_tenure');
+        const Pb = getVal('bb_price') - getVal('bb_dp');
+        const Nb = getVal('bb_tenure');
+
+        let resA = {}, resB = {}, label1="", label2="", winner="";
+
+        if(battleType === 'quote') {
+            const emiA = getVal('ba_emi');
+            const emiB = getVal('bb_emi');
+
+            const irrA = getIRR(Pa, emiA, Na);
+            const irrB = getIRR(Pb, emiB, Nb);
+            const intA = (emiA * Na) - Pa;
+            const intB = (emiB * Nb) - Pb;
+
+            resA = { l1: irrA.toFixed(2)+'%', l2: fmt(intA), val: intA };
+            resB = { l1: irrB.toFixed(2)+'%', l2: fmt(intB), val: intB };
+            
+            label1 = "True Interest (IRR)";
+            label2 = "Total Interest Cost";
+            winner = intA < intB ? "A" : "B";
+            
+            document.getElementById('battle_math').innerHTML = `
+<div class="math-step">
+    <div class="math-header" style="color:var(--col-a)">Option A Analysis</div>
+    <div class="math-row">Step 1: Principal = ${Math.round(Pa)}</div>
+    <div class="math-row">Step 2: Total Paid = ${emiA} × ${Na} = ${Math.round(emiA*Na)}</div>
+    <div class="math-result">True Rate (IRR) = ${irrA.toFixed(2)}%</div>
+</div>
+
+<div class="math-step">
+    <div class="math-header" style="color:var(--col-b)">Option B Analysis</div>
+    <div class="math-row">Step 1: Principal = ${Math.round(Pb)}</div>
+    <div class="math-row">Step 2: Total Paid = ${emiB} × ${Nb} = ${Math.round(emiB*Nb)}</div>
+    <div class="math-result">True Rate (IRR) = ${irrB.toFixed(2)}%</div>
+</div>`;
+
+        } else {
+            const calA = getEMI(Pa, getVal('ba_rate'), Na, document.getElementById('ba_type').value);
+            const calB = getEMI(Pb, getVal('bb_rate'), Nb, document.getElementById('bb_type').value);
+            
+            const costA = calA.int + getVal('ba_fee');
+            const costB = calB.int + getVal('bb_fee');
+
+            resA = { l1: fmt(calA.emi), l2: fmt(costA), val: costA };
+            resB = { l1: fmt(calB.emi), l2: fmt(costB), val: costB };
+
+            label1 = "Monthly EMI";
+            label2 = "Total Cost (Int + Fees)";
+            winner = costA < costB ? "A" : "B";
+
+            document.getElementById('battle_math').innerHTML = `
+<div class="math-step">
+    <div class="math-header" style="color:var(--col-a)">Option A Analysis</div>
+    <div class="math-row">Step 1: Interest = ${Math.round(calA.int)}</div>
+    <div class="math-row">Step 2: Fees = ${getVal('ba_fee')}</div>
+    <div class="math-result">Total Cost = ${Math.round(costA)}</div>
+</div>
+
+<div class="math-step">
+    <div class="math-header" style="color:var(--col-b)">Option B Analysis</div>
+    <div class="math-row">Step 1: Interest = ${Math.round(calB.int)}</div>
+    <div class="math-row">Step 2: Fees = ${getVal('bb_fee')}</div>
+    <div class="math-result">Total Cost = ${Math.round(costB)}</div>
+</div>`;
+        }
+
+        document.getElementById('battle_res').style.display = 'block';
+        document.getElementById('label_res_1').innerText = label1;
+        document.getElementById('label_res_2').innerText = label2;
+        
+        document.getElementById('val_a_1').innerText = resA.l1;
+        document.getElementById('val_a_2').innerText = resA.l2;
+        document.getElementById('val_b_1').innerText = resB.l1;
+        document.getElementById('val_b_2').innerText = resB.l2;
+
+        const banner = document.getElementById('winner_box');
+        banner.style.display = 'block';
+        const save = Math.abs(resA.val - resB.val);
+        banner.innerHTML = `🏆 Option ${winner} Wins! You save ${fmt(save)}`;
+        banner.style.color = winner === 'A' ? 'var(--col-a)' : 'var(--col-b)';
+        banner.style.borderColor = winner === 'A' ? 'var(--col-a)' : 'var(--col-b)';
+    }
+
+</script>
+</body>
+</html>
